@@ -1,0 +1,29 @@
+# Build artifacts
+LivePaper.app/
+LivePaper.dmg
+dmg-staging/
+icon.iconset/
+
+# Large sample / local videos (not for git)
+Videos/*.mov
+Videos/*.mp4
+assets/demo.gif
+assets/menubar.png
+assets/social-preview.png
+assets/livepaper-app-icon.jpg
+assets/livepaper-menubar-icon.jpg
+
+# macOS junk
+.DS_Store
+._*
+
+# Xcode
+*.xcodeproj/
+*.xcworkspace/
+build/
+DerivedData/
+
+# Editor
+*.swp
+*.swo
+*~
