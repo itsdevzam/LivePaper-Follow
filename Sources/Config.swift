@@ -90,4 +90,9 @@ class LivePaperConfig {
         get { d.object(forKey: p + "pauseOnBattery") as? Bool ?? false }
         set { d.set(newValue, forKey: p + "pauseOnBattery") }
     }
+    /// Menu bar status icon. When off, app keeps running in background (reopen app to show Dashboard).
+    var showMenuBarIcon: Bool {
+        get { d.object(forKey: p + "showMenuBarIcon") as? Bool ?? true }
+        set { d.set(newValue, forKey: p + "showMenuBarIcon") }
+    }
 }

@@ -358,6 +358,7 @@ class LivePaperApp: NSObject, NSApplicationDelegate {
     }
 
     func applicationShouldHandleReopen(_ sender: NSApplication, hasVisibleWindows flag: Bool) -> Bool {
+        // When menu icon is hidden, reopening the app is how users reach Dashboard
         dashboard?.show()
         return true
     }

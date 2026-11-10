@@ -29,6 +29,7 @@ class DashboardState: ObservableObject {
     @Published var manualAerialAssetID: String? = nil
     @Published var packChoices: [AppleAerialsFollower.PackChoice] = []
     @Published var launchAtLogin: Bool = false
+    @Published var showMenuBarIcon: Bool = true
     @Published var pauseOnBattery: Bool = false
     @Published var libraryVideos: [URL] = []
     @Published var currentVideoPath: String = ""
@@ -60,6 +61,7 @@ class DashboardState: ObservableObject {
         manualAerialAssetID = LivePaperConfig.shared.manualAerialAssetID
         packChoices = AppleAerialsFollower.shared.availablePackChoices()
         launchAtLogin = LoginItemManager.isEnabled
+        showMenuBarIcon = LivePaperConfig.shared.showMenuBarIcon
         pauseOnBattery = LivePaperConfig.shared.pauseOnBattery
         currentVideoPath = path
         libraryVideos = VideoLibrary.shared.videoFiles()
@@ -323,6 +325,20 @@ struct DashboardView: View {
             .toggleStyle(.checkbox)
 
             Toggle(isOn: Binding(
+                get: { state.showMenuBarIcon },
+                set: { actions.toggleShowMenuBarIcon($0) }
+            )) {
+                VStack(alignment: .leading, spacing: 2) {
+                    Text("Show menu bar icon")
+                        .font(.system(size: 14))
+                    Text("Off = hide icon, LivePaper still runs. Reopen the app to show Dashboard again.")
+                        .font(.system(size: 11))
+                        .foregroundColor(mutedGray)
+                }
+            }
+            .toggleStyle(.checkbox)
+
+            Toggle(isOn: Binding(
                 get: { state.pauseOnBattery },
                 set: { actions.togglePauseOnBattery($0) }
             )) {
@@ -576,6 +592,7 @@ struct DashboardActions {
     var toggleApplySystemWallpaper: (Bool) -> Void = { _ in }
     var selectPackAerial: (String) -> Void = { _ in }
     var toggleLaunchAtLogin: (Bool) -> Void = { _ in }
+    var toggleShowMenuBarIcon: (Bool) -> Void = { _ in }
     var togglePauseOnBattery: (Bool) -> Void = { _ in }
     var quit: () -> Void = {}
 }
@@ -716,6 +733,10 @@ class DashboardController: NSObject, NSWindowDelegate {
             toggleLaunchAtLogin: { [weak self] on in
                 _ = LoginItemManager.setEnabled(on)
                 self?.state.launchAtLogin = LoginItemManager.isEnabled
+            },
+            toggleShowMenuBarIcon: { [weak self] on in
+                self?.app?.statusBar?.setMenuBarIconVisible(on)
+                self?.state.showMenuBarIcon = LivePaperConfig.shared.showMenuBarIcon
             },
             togglePauseOnBattery: { [weak self] on in
                 LivePaperConfig.shared.pauseOnBattery = on

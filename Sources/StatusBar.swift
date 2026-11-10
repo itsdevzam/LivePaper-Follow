@@ -19,6 +19,35 @@ class StatusBarController {
             btn.toolTip = "LivePaper"
         }
         rebuildMenu()
+        applyVisibilityFromConfig()
+    }
+
+    /// Show/hide menu bar icon. App keeps running either way.
+    func setMenuBarIconVisible(_ visible: Bool) {
+        LivePaperConfig.shared.showMenuBarIcon = visible
+        applyVisibilityFromConfig()
+        if visible {
+            rebuildMenu()
+        }
+    }
+
+    func applyVisibilityFromConfig() {
+        let visible = LivePaperConfig.shared.showMenuBarIcon
+        statusItem.isVisible = visible
+        // Ensure item still exists if system removed it while hidden
+        if visible, statusItem.button == nil {
+            statusItem = NSStatusBar.system.statusItem(withLength: NSStatusItem.squareLength)
+            if let btn = statusItem.button {
+                let config = NSImage.SymbolConfiguration(pointSize: 16, weight: .medium)
+                let img = NSImage(systemSymbolName: "play.rectangle.fill", accessibilityDescription: "LivePaper")
+                img?.isTemplate = true
+                btn.image = img?.withSymbolConfiguration(config) ?? img
+                btn.imagePosition = .imageOnly
+                btn.toolTip = "LivePaper"
+            }
+            rebuildMenu()
+            statusItem.isVisible = true
+        }
     }
 
     func rebuildMenu() {
@@ -115,6 +144,10 @@ class StatusBarController {
         login.target = self
         login.state = LoginItemManager.isEnabled ? .on : .off
         menu.addItem(login)
+
+        let hideMenu = NSMenuItem(title: "Hide Menu Bar Icon", action: #selector(hideMenuBarIcon), keyEquivalent: "")
+        hideMenu.target = self
+        menu.addItem(hideMenu)
         menu.addItem(.separator())
 
         let dash = NSMenuItem(title: "Open Dashboard...", action: #selector(openDash), keyEquivalent: ",")
@@ -234,7 +267,20 @@ class StatusBarController {
         }
     }
 
+    @objc func hideMenuBarIcon() {
+        let alert = NSAlert()
+        alert.messageText = "Hide Menu Bar Icon?"
+        alert.informativeText = "LivePaper keeps running in the background. To show the icon again, open LivePaper (or click it in the Dock/Finder) and turn on “Show menu bar icon” in the Dashboard."
+        alert.alertStyle = .informational
+        alert.addButton(withTitle: "Hide Icon")
+        alert.addButton(withTitle: "Cancel")
+        guard alert.runModal() == .alertFirstButtonReturn else { return }
+        setMenuBarIconVisible(false)
+    }
+
     func updateNowPlaying() {
-        rebuildMenu()
+        if LivePaperConfig.shared.showMenuBarIcon {
+            rebuildMenu()
+        }
     }
 }
