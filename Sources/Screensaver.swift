@@ -178,24 +178,32 @@ class ScreensaverController {
         let injector = AerialsInjector()
         let agentRunning = injector.isWallpaperAgentRunning()
         let injectionHealthy = injector.isInjectionHealthy()
-        os_log("Screen LOCKED — hiding windows (agent=%d, healthy=%d)", log: lpLog, type: .default,
-               agentRunning ? 1 : 0, injectionHealthy ? 1 : 0)
+        os_log("Screen LOCKED — agent=%d healthy=%d follow=%d", log: lpLog, type: .default,
+               agentRunning ? 1 : 0, injectionHealthy ? 1 : 0,
+               LivePaperConfig.shared.followAppleAerials ? 1 : 0)
 
         if active {
             dismissForLock()
         }
+
+        // Follow mode: keep LivePaper video windows on the lock screen.
+        // Hiding them only showed a static system wallpaper (aerials screensaver
+        // often wasn't active). Raise to screen-saver level and keep playing.
+        if LivePaperConfig.shared.followAppleAerials || LivePaperConfig.shared.applySystemWallpaper {
+            showVideoOnLockScreen()
+            startLockSleepAssertion()
+            SystemAerialSetter.configureScreensaverForAerials()
+            return
+        }
+
+        // Legacy inject path: hide our windows so system aerials show
         hideWallpaperWindows()
 
-        // Prevent the display from sleeping while locked so the aerials video
-        // keeps playing on the lock screen.  Without this, the display sleeps
-        // after ~30s and the aerials player ramps down to black on wake.
-        // Also useful in Follow mode so Apple's own lock aerial keeps playing.
-        if LivePaperConfig.shared.lockScreenEnabled || LivePaperConfig.shared.followAppleAerials {
+        if LivePaperConfig.shared.lockScreenEnabled {
             startLockSleepAssertion()
         }
 
-        // Never re-inject while Following Apple — lock screen stays Apple's choice.
-        if LivePaperConfig.shared.lockScreenEnabled && !LivePaperConfig.shared.followAppleAerials {
+        if LivePaperConfig.shared.lockScreenEnabled {
             if !injectionHealthy || !agentRunning {
                 DispatchQueue.global(qos: .utility).async { [weak self] in
                     guard let self = self, let app = self.app else { return }
@@ -222,10 +230,38 @@ class ScreensaverController {
         }
     }
 
+    /// Keep playing LivePaper video above the lock UI / static wallpaper.
+    private func showVideoOnLockScreen() {
+        guard let app = app else { return }
+        let videoLevel = NSWindow.Level(rawValue: NSWindow.Level.screenSaver.rawValue + 1)
+        for v in app.videoViews {
+            v.muteAudio()
+            if !app.isPaused { v.resume() }
+        }
+        for w in app.wallpaperWindows {
+            w.level = videoLevel
+            w.orderFrontRegardless()
+        }
+        // Clock overlays stay hidden on lock (login UI has its own clock)
+        for w in app.clockWindows { w.orderOut(nil) }
+
+        // Re-raise after login chrome appears (can steal layering briefly)
+        for delay in [0.4, 1.2, 2.5] {
+            DispatchQueue.main.asyncAfter(deadline: .now() + delay) { [weak self] in
+                guard let self = self, self.lockedBySystem, let app = self.app else { return }
+                let level = NSWindow.Level(rawValue: NSWindow.Level.screenSaver.rawValue + 1)
+                for v in app.videoViews where !app.isPaused { v.resume() }
+                for w in app.wallpaperWindows {
+                    w.level = level
+                    w.orderFrontRegardless()
+                }
+            }
+        }
+    }
+
     // MARK: - Hide/Show wallpaper windows for lock screen
-    // On lock: orderOut our wallpaper windows so the system aerials
-    // screensaver (playing our injected video) is visible.
-    // On unlock: bring them back.
+    // Inject mode: orderOut so system aerials show.
+    // Follow mode uses showVideoOnLockScreen instead.
 
     private func hideWallpaperWindows() {
         guard let app = app else { return }

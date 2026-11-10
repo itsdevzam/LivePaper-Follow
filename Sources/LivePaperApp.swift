@@ -58,6 +58,7 @@ class LivePaperApp: NSObject, NSApplicationDelegate {
 
         if LivePaperConfig.shared.followAppleAerials {
             startFollowingAppleAerials()
+            SystemAerialSetter.configureScreensaverForAerials()
         }
 
         // Do not open dashboard on launch (menu-bar app)

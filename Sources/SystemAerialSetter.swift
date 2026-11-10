@@ -36,6 +36,8 @@ final class SystemAerialSetter {
         lastAppliedID = id
         NSLog("LivePaper: SystemAerialSetter — Desktop+Lock → %@", id)
 
+        Self.configureScreensaverForAerials()
+
         if forceRestart {
             restartWallpaperAgent()
         }
@@ -44,6 +46,25 @@ final class SystemAerialSetter {
 
     func clearCache() {
         lastAppliedID = nil
+    }
+
+    /// Point macOS screensaver / lock idle phase at WallpaperAerialsExtension
+    /// so Idle aerials play as video instead of a static still.
+    static func configureScreensaverForAerials() {
+        let aerialsPath = "/System/Library/ExtensionKit/Extensions/WallpaperAerialsExtension.appex"
+        let task = Process()
+        task.executableURL = URL(fileURLWithPath: "/usr/bin/defaults")
+        task.arguments = [
+            "-currentHost", "write", "com.apple.screensaver",
+            "moduleDict",
+            "-dict",
+            "moduleName", "WallpaperAerialsExtension",
+            "path", aerialsPath,
+            "type", "0"
+        ]
+        try? task.run()
+        task.waitUntilExit()
+        NSLog("LivePaper: Screensaver module → aerials (exit %d)", task.terminationStatus)
     }
 
     // MARK: - Ensure video on disk
