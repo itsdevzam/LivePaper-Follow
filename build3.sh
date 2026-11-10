@@ -35,6 +35,9 @@ fi
 if [ -f "assets/MenuBarIcon@2x.png" ]; then
   cp "assets/MenuBarIcon@2x.png" "$APP/Contents/Resources/"
 fi
+if [ -f "assets/MenuBarIcon@3x.png" ]; then
+  cp "assets/MenuBarIcon@3x.png" "$APP/Contents/Resources/"
+fi
 if [ -f "assets/livepaper-app-icon.png" ]; then
   cp "assets/livepaper-app-icon.png" "$APP/Contents/Resources/"
 fi

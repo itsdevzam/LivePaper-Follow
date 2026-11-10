@@ -8,25 +8,34 @@ class StatusBarController {
 
     init(app: LivePaperApp) {
         self.app = app
-        statusItem = NSStatusBar.system.statusItem(withLength: NSStatusItem.variableLength)
+        // Square slot gives the icon more room than variableLength
+        statusItem = NSStatusBar.system.statusItem(withLength: NSStatusItem.squareLength)
         if let btn = statusItem.button {
             btn.image = Self.menuBarImage()
+            btn.imagePosition = .imageOnly
             btn.toolTip = "LivePaper"
         }
         rebuildMenu()
     }
 
     private static func menuBarImage() -> NSImage {
+        // 22pt is the standard full menu-bar glyph size (was 18 — looked tiny)
+        let pointSize = NSSize(width: 22, height: 22)
         if let url = Bundle.main.url(forResource: "MenuBarIcon", withExtension: "png"),
            let img = NSImage(contentsOf: url) {
             img.isTemplate = true
-            img.size = NSSize(width: 18, height: 18)
+            img.size = pointSize
             return img
         }
-        let fallback = NSImage(systemSymbolName: "play.rectangle.on.rectangle", accessibilityDescription: "LivePaper")
-            ?? NSImage(size: NSSize(width: 18, height: 18))
+        let config = NSImage.SymbolConfiguration(pointSize: 18, weight: .medium)
+        if let base = NSImage(systemSymbolName: "play.rectangle.on.rectangle.fill", accessibilityDescription: "LivePaper"),
+           let img = base.withSymbolConfiguration(config) {
+            img.isTemplate = true
+            img.size = pointSize
+            return img
+        }
+        let fallback = NSImage(size: pointSize)
         fallback.isTemplate = true
-        fallback.size = NSSize(width: 18, height: 18)
         return fallback
     }
 
