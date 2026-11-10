@@ -153,6 +153,21 @@ struct DashboardView: View {
                     .foregroundColor(mutedGray)
             }
             Spacer()
+            Button {
+                if let url = URL(string: "https://github.com/itsdevzam/LivePaper-Follow") {
+                    NSWorkspace.shared.open(url)
+                }
+            } label: {
+                Label("GitHub", systemImage: "link")
+                    .font(.system(size: 12, weight: .semibold))
+                    .foregroundColor(accent)
+                    .padding(.horizontal, 10)
+                    .padding(.vertical, 6)
+                    .background(accent.opacity(0.12))
+                    .clipShape(Capsule())
+            }
+            .buttonStyle(.plain)
+            .help("github.com/itsdevzam/LivePaper-Follow")
         }
     }
 
@@ -558,6 +573,18 @@ struct DashboardView: View {
             Button("Quit LivePaper") { actions.quit() }
                 .foregroundColor(Color(white: 0.65))
             Spacer()
+            Button {
+                if let url = URL(string: "https://github.com/itsdevzam") {
+                    NSWorkspace.shared.open(url)
+                }
+            } label: {
+                Text("github.com/itsdevzam")
+                    .font(.system(size: 11, weight: .medium))
+                    .foregroundColor(accentSoft.opacity(0.9))
+            }
+            .buttonStyle(.plain)
+            Text("·")
+                .foregroundColor(Color.white.opacity(0.25))
             Text("Menu bar app · Dock hidden")
                 .font(.system(size: 11))
                 .foregroundColor(Color.white.opacity(0.28))
